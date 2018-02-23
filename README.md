@@ -1,14 +1,15 @@
 ### Empirical Study of Gaussian Mixture Models
+Utilizing sklearn to perform an empirical study on learning mixtures of spherical and non-spherical Gaussians in high dimensions.
 
-##### Naive GMM
-
-
-##### GMM w/ Diagonal Covariance
+##### Diagonal Covariance GMM
 
 
-##### GMM w/ Full Covariance
+##### Full Covariance GMM
 
 
-##### Gradient-based GMM
+##### Spherical GMM
+
+
+##### Tied GMM
 
 
