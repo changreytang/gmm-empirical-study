@@ -2,6 +2,8 @@ import itertools
 import math
 import numpy as np
 from scipy import linalg
+from scipy.spatial.distance import directed_hausdorff
+from time import time
 import sklearn
 from sklearn import mixture
 
@@ -85,25 +87,62 @@ def _generate_gmm_data(points, components, dimensions, seed):
     c_weights /= np.sum(c_weights)
 
     result = np.zeros((points, dimensions), dtype=np.float32)
+    labels = np.zeros(points)
 
     for i in range(points):
         comp = np.random.choice(np.array(range(components)), p=c_weights)
+        labels[i] = comp
         result[i] = np.random.multivariate_normal(
             c_means[comp], np.diag(c_variances[comp])
         )
     np.random.seed()
-    return result, c_means, c_variances, c_weights
+    return result, c_means, c_variances, c_weights, labels
 
-def generate_fit_and_plot_gmm_data(num_samples, num_comp_gen, num_comp_fit, dim, cov_type, seed):
-    data, true_means, true_variances, true_weights = _generate_gmm_data(num_samples,
+def generate_fit_and_plot_gmm_data(num_samples, num_comp_gen, num_comp_fit, dim, cov_type, seed, plot_results = False):
+    data, true_means, true_variances, true_weights, true_labels = _generate_gmm_data(num_samples,
                                                                        num_comp_gen,
-                                                                       dim,
-                                                                       seed)
+                                                                       dim, seed)
+
+    training_cutoff = int(math.floor(0.3*num_samples))
+    training_data = data[:training_cutoff]
+    training_labels = true_labels[:training_cutoff]
+    testing_data = data[training_cutoff:]
+    testing_labels = true_labels[training_cutoff:]
+
+    means_init = [training_data[training_labels == i].mean(axis=0) if training_data[training_labels == i].size != 0 else np.zeros(dim) for i in range(num_comp_gen)]
+
+    start_time = time()
     gmm = mixture.GaussianMixture(n_components=num_comp_fit,
                                   covariance_type=cov_type,
-                                  tol=1e-06,
-                                  verbose=2,
-                                  verbose_interval=1).fit(data)
+                                  reg_covar=1e-03,
+                                  max_iter=10000,
+                                  means_init=means_init).fit(training_data, training_labels)
+    end_time = time()
 
-    _plot_results(data, gmm.predict(data), gmm.means_, gmm.covariances_, cov_type, 'Gaussian Mixture')
+    predicted_labels = gmm.predict(testing_data)
+
+    accuracy = np.mean(predicted_labels.ravel() == testing_labels.ravel()) * 100
+    elapsed_time = end_time - start_time
+    num_iterations = gmm.n_iter_
+    lower_bound = gmm.lower_bound_
+
+    if plot_results:
+        _plot_results(testing_data, predicted_labels, gmm.means_, gmm.covariances_, cov_type, 'Gaussian Mixture')
+
+    return accuracy, elapsed_time, num_iterations, lower_bound
+
+def print_data(num_samples, num_comp_gen, num_comp_fit, dim, cov_type, seed, acc, elapsed_t, num_it, low_b):
+    print("DIMENSIONS: %d" % dim)
+    print("NUMBER OF SAMPLES: %d" % num_samples)
+    print("NUMBER OF COMPONENTS GENERATED: %d" % num_comp_gen)
+    print("NUMBER OF COMPONENTS FITTED: %d" % num_comp_fit)
+    print("COVARIANCE TYPE: %s" % cov_type)
+    print("\tSEED: %d" % seed)
+    print("\tACCURACY: %f" % acc)
+    print("\tTIME ELAPSED: %fs" % elapsed_t)
+    print("\tNUMBER OF ITERATIONS: %d" % num_it)
+    print("\tLOWER BOUND: %d" % low_b)
+    print("============================================")
+
+
 
