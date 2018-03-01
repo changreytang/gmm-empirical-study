@@ -98,7 +98,7 @@ def _generate_gmm_data(points, components, dimensions, seed):
     np.random.seed()
     return result, c_means, c_variances, c_weights, labels
 
-def generate_fit_and_plot_gmm_data(num_samples, num_comp_gen, num_comp_fit, dim, cov_type, seed, plot_results = False):
+def generate_and_fit_gmm_data(num_samples, num_comp_gen, num_comp_fit, dim, cov_type, seed, plot_results = False):
     data, true_means, true_variances, true_weights, true_labels = _generate_gmm_data(num_samples,
                                                                        num_comp_gen,
                                                                        dim, seed)
@@ -129,15 +129,17 @@ def generate_fit_and_plot_gmm_data(num_samples, num_comp_gen, num_comp_fit, dim,
     if plot_results:
         _plot_results(testing_data, predicted_labels, gmm.means_, gmm.covariances_, cov_type, 'Gaussian Mixture')
 
+    _print_data(num_samples, num_comp_gen, num_comp_fit, dim, cov_type, seed, accuracy, elapsed_time, num_iterations, lower_bound)
+
     return accuracy, elapsed_time, num_iterations, lower_bound
 
-def print_data(num_samples, num_comp_gen, num_comp_fit, dim, cov_type, seed, acc, elapsed_t, num_it, low_b):
+def _print_data(num_samples, num_comp_gen, num_comp_fit, dim, cov_type, seed, acc, elapsed_t, num_it, low_b):
     print("DIMENSIONS: %d" % dim)
     print("NUMBER OF SAMPLES: %d" % num_samples)
     print("NUMBER OF COMPONENTS GENERATED: %d" % num_comp_gen)
     print("NUMBER OF COMPONENTS FITTED: %d" % num_comp_fit)
     print("COVARIANCE TYPE: %s" % cov_type)
-    print("\tSEED: %d" % seed)
+    print("SEED: %d" % seed)
     print("\tACCURACY: %f" % acc)
     print("\tTIME ELAPSED: %fs" % elapsed_t)
     print("\tNUMBER OF ITERATIONS: %d" % num_it)
