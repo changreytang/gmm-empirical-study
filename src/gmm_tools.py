@@ -98,7 +98,7 @@ def _generate_gmm_data(points, components, dimensions, seed):
     np.random.seed()
     return result, c_means, c_variances, c_weights, labels
 
-def generate_and_fit_gmm_data(num_samples, num_comp_gen, num_comp_fit, dim, cov_type, seed, plot_results = False):
+def generate_and_fit_gmm_data(num_samples, num_comp_gen, num_comp_fit, dim, cov_type, seed, plot_results = False, title=""):
     data, true_means, true_variances, true_weights, true_labels = _generate_gmm_data(num_samples,
                                                                        num_comp_gen,
                                                                        dim, seed)
@@ -127,7 +127,7 @@ def generate_and_fit_gmm_data(num_samples, num_comp_gen, num_comp_fit, dim, cov_
     lower_bound = gmm.lower_bound_
 
     if plot_results:
-        _plot_results(testing_data, predicted_labels, gmm.means_, gmm.covariances_, cov_type, 'Gaussian Mixture')
+        _plot_results(testing_data, predicted_labels, gmm.means_, gmm.covariances_, cov_type, "Gaussian Mixture: %s" % title)
 
     _print_data(num_samples, num_comp_gen, num_comp_fit, dim, cov_type, seed, accuracy, elapsed_time, num_iterations, lower_bound)
 
